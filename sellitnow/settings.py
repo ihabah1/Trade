@@ -1,6 +1,8 @@
 ﻿import os
 from pathlib import Path
 from dotenv import load_dotenv
+import dj_database_url
+
 
 # Load environment variables from .env
 load_dotenv()
@@ -98,9 +100,10 @@ DATABASES = {
         "default": dj_database_url.config(
         default=os.environ.get("interchange.proxy.rlwy.net"),
         conn_max_age=600,
-        ssl_require=True
+        ssl_require=True)
     }
 }
+
 
 
 # Password validation
