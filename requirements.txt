@@ -6,4 +6,4 @@ Pillow
 gunicorn
 whitenoise
 Django>=4.0
-pymysql
+psycopg[binary]
