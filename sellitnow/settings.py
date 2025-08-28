@@ -95,6 +95,10 @@ DATABASES = {
         'PASSWORD': os.getenv("DB_PASSWORD", "hSEjZdGIqLGMoYOtbIYLPxbNxwQrtKFc"),
         'HOST': os.getenv("DB_HOST", "interchange.proxy.rlwy.net"),
         'PORT': os.getenv("DB_PORT", "50440"),
+        "default": dj_database_url.config(
+        default=os.environ.get("interchange.proxy.rlwy.net"),
+        conn_max_age=600,
+        ssl_require=True
     }
 }
 
