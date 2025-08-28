@@ -1,0 +1,22 @@
+{% extends "app/base.html" %}
+
+{% block title %}Welcome – SellItNow{% endblock %}
+
+{% block content %}
+<div class="text-center mt-5">
+    <h1 class="display-4">Welcome to SellItNow</h1>
+    <p class="lead">The right place for gaming — play, compete, and climb the leaderboard!</p>
+    <img src="https://media.istockphoto.com/id/1210733789/photo/colorful-neon-geometric-shapes-abstract-background.jpg?s=2048x2048&w=is&k=20&c=J_iNWNBoS416s1qC_ztnTPVZLS76A8bIAPU7W_GwIi8="
+         alt="Gaming Banner"
+         class="img-fluid rounded shadow mb-4"
+         style="max-height:300px;">
+    {% if not user.is_authenticated %}
+<div class="d-flex justify-content-center">
+    <a href="{% url 'account_login' %}" class="btn btn-primary btn-lg me-2">Login</a>
+    <a href="{% url 'account_signup' %}" class="btn btn-success btn-lg">Register</a>
+</div>
+
+    {% endif %}
+</div>
+{% endblock %}
+

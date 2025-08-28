@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Join a Room</h2>
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="room_code" class="form-control mb-2" placeholder="Enter Room Code">
+        <button type="submit" class="btn btn-success">Join</button>
+    </form>
+</div>
+{% endblock %}

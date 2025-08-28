@@ -1,0 +1,9 @@
+django-admin-interface
+django
+python-dotenv
+django-allauth
+Pillow
+gunicorn
+whitenoise
+Django>=4.0
+pymysql

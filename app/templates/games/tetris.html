@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tetris</title>
+</head>
+<body>
+    <h2 style="text-align:center;">Tetris Game (Coming Soon)</h2>
+    <p style="text-align:center;">You earned <span id="points">100</span> points for trying!</p>
+
+    <script>
+        setTimeout(() => {
+            fetch("{% url 'submit_score' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    game: "tetris",
+                    score: 100
+                })
+            });
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,385 @@
+{% load static %}
+
+{% load account %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pong: You vs AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #111;
+            color: #fff;
+            text-align: center;
+        }
+        header {
+            background-color: #222;
+            padding: 1em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header nav a {
+            color: #fff;
+            margin: 0 1em;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        #notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            min-width: 200px;
+            padding: .75rem 1rem;
+            display: none;
+            border-radius: .25rem;
+            z-index: 1000;
+        }
+        .score-label {
+            margin: 1em 0;
+            font-size: 1.25rem;
+        }
+        canvas {
+            background: #000;
+            border: 2px solid #fff;
+            display: block;
+            margin: 0 auto;
+        }
+        .slider-container {
+            margin-top: 1em;
+        }
+        input[type="range"] {
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div><strong>Welcome, {{ user.username }}</strong></div>
+    <nav>
+        <a href="{% url 'lobby' %}">🏠 Lobby</a>
+        <a href="{% url 'profile' %}">📊 Profile</a>
+
+        <a href="{% url 'account_logout' %}">🚪 Logout</a>
+    </nav>
+</header>
+
+<div id="notification" class="alert" role="alert"></div>
+
+<div class="score-label">
+    🎮 Your Current Points: <span id="user-score">{{ total_score }}</span>
+</div>
+
+<h1>Pong: You vs AI</h1>
+<canvas id="gameCanvas" width="800" height="400"></canvas>
+<p id="score">You: 0 – AI: 0</p>
+
+<div class="slider-container">
+    <label for="speedSlider">⚡ Ball Speed: <span id="speedValue">3</span></label><br>
+    <input type="range" id="speedSlider" min="2" max="10" value="3">
+</div>
+
+<script>
+    // Helpers
+    function showNotification(msg, type="info") {
+        const n = document.getElementById("notification");
+        n.textContent = msg;
+        n.className = `alert alert-${type}`;
+        n.style.display = "block";
+        setTimeout(() => n.style.display = "none", 3000);
+    }
+
+    // Canvas setup
+    const canvas = document.getElementById("gameCanvas"),
+        ctx    = canvas.getContext("2d"),
+        paddleH = 80, paddleW = 10;
+
+    let baseSpeed = parseInt(document.getElementById("speedSlider").value),
+        aiSpeed   = 2,
+        playerScore = 0, aiScore = 0,
+        gameOver = false,
+        dxSign = Math.random() < .5 ? 1 : -1,
+        dySign = Math.random() < .5 ? 1 : -1,
+        winningScore = 3,
+        pointsAwarded = 1;
+
+    // Ball & paddles
+    let player = { x: 10, y: canvas.height/2 - paddleH/2 },
+        ai     = { x: canvas.width - 20, y: canvas.height/2 - paddleH/2 },
+        ball   = { x: canvas.width/2, y: canvas.height/2, size: 10 };
+
+    function resetBall() {
+        ball.x = canvas.width/2;
+        ball.y = canvas.height/2;
+        dxSign = -dxSign;  // send back toward scorer
+        dySign = Math.random() < .5 ? 1 : -1;
+    }
+
+    function updateBallVelocity() {
+        ball.dx = baseSpeed * dxSign;
+        ball.dy = baseSpeed * dySign;
+    }
+
+    // Slider control
+    document.getElementById("speedSlider").addEventListener("input", e => {
+        baseSpeed = parseInt(e.target.value);
+        document.getElementById("speedValue").textContent = baseSpeed;
+        updateBallVelocity();
+    });
+
+    // Mouse-controlled paddle
+    canvas.addEventListener("mousemove", e => {
+        const rect = canvas.getBoundingClientRect();
+        player.y = e.clientY - rect.top - paddleH/2;
+    });
+
+    // Main draw loop
+    function draw() {
+        if (gameOver) return;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        // draw paddles & ball
+        ctx.fillStyle = "white";
+        ctx.fillRect(player.x, player.y, paddleW, paddleH);
+        ctx.fillRect(ai.x, ai.y, paddleW, paddleH);
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.size, 0, Math.PI*2);
+        ctx.fill();
+
+        // move ball
+        ball.x += ball.dx; ball.y += ball.dy;
+
+        // bounce off top/bottom
+        if (ball.y - ball.size <= 0 || ball.y + ball.size >= canvas.height) {
+            dySign = -dySign;
+            updateBallVelocity();
+        }
+
+        // paddle collisions
+        if (ball.x - ball.size <= player.x + paddleW &&
+            ball.y >= player.y &&
+            ball.y <= player.y + paddleH) {
+            dxSign = 1; updateBallVelocity();
+        }
+        if (ball.x + ball.size >= ai.x &&
+            ball.y >= ai.y &&
+            ball.y <= ai.y + paddleH) {
+            dxSign = -1; updateBallVelocity();
+        }
+
+        // simple AI
+        if (ball.y < ai.y + paddleH/2) ai.y -= aiSpeed;
+        else ai.y += aiSpeed;
+
+        // score
+        if (ball.x + ball.size < 0) {
+            aiScore++; resetBall(); updateBallVelocity();
+        }
+        if (ball.x - ball.size > canvas.width) {
+            playerScore++; resetBall(); updateBallVelocity();
+        }
+
+        document.getElementById("score").textContent =
+            `You: ${playerScore} – AI: ${aiScore}`;
+
+        // check victory
+        if (playerScore >= winningScore) {
+            gameOver = true;
+            awardPoints();
+        }
+        else if (aiScore >= winningScore) {
+            gameOver = true;
+            setTimeout(() => {
+                showNotification("💀 AI Wins! Try again.", "warning");
+                setTimeout(()=>location.reload(), 1500);
+            }, 200);
+        }
+    }
+
+    // Award points via your Django endpoint
+    function awardPoints() {
+        showNotification("Connecting…", "info");
+        fetch("/api/update-points/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({ points: pointsAwarded })
+        })
+            .then(r=>r.json())
+            .then(data=>{
+                if (data.success || data.total_score!=null) {
+                    showNotification(`🎉 You Win! +${pointsAwarded} pt. Total: ${data.total_score}`, "success");
+                } else {
+                    showNotification("Something went wrong updating your points.", "danger");
+                }
+                setTimeout(()=>location.reload(), 2000);
+            })
+            .catch(_=>{
+                showNotification("Server error, please try again.", "danger");
+                setTimeout(()=>location.reload(), 2000);
+            });
+    }
+
+    // initialize
+    updateBallVelocity();
+    setInterval(draw, 1000/60);
+</script>
+
+=======
+
+<h1>Pong: You vs AI</h1>
+<canvas id="gameCanvas" width="800" height="400"></canvas>
+<p id="score">You: 0 – AI: 0</p>
+
+<div class="slider-container">
+    <label for="speedSlider">⚡ Ball Speed: <span id="speedValue">3</span></label><br>
+    <input type="range" id="speedSlider" min="2" max="10" value="3">
+</div>
+
+<script>
+    function showNotification(msg, type="info") {
+        const n = document.getElementById("notification");
+        n.textContent = msg;
+        n.className = `alert alert-${type}`;
+        n.style.display = "block";
+        setTimeout(() => n.style.display = "none", 5000);
+    }
+
+    const canvas = document.getElementById("gameCanvas"),
+        ctx = canvas.getContext("2d"),
+        paddleH = 80, paddleW = 10;
+
+    let baseSpeed = parseInt(document.getElementById("speedSlider").value),
+        aiSpeed = 2,
+        playerScore = 0, aiScore = 0,
+        gameOver = false,
+        dxSign = Math.random() < .5 ? 1 : -1,
+        dySign = Math.random() < .5 ? 1 : -1,
+        winningScore = 3;
+
+    let player = { x: 10, y: canvas.height/2 - paddleH/2 },
+        ai = { x: canvas.width - 20, y: canvas.height/2 - paddleH/2 },
+        ball = { x: canvas.width/2, y: canvas.height/2, size: 10 };
+
+    function resetBall() {
+        ball.x = canvas.width / 2;
+        ball.y = canvas.height / 2;
+        dxSign = -dxSign;
+        dySign = Math.random() < 0.5 ? 1 : -1;
+    }
+
+    function updateBallVelocity() {
+        ball.dx = baseSpeed * dxSign;
+        ball.dy = baseSpeed * dySign;
+    }
+
+    document.getElementById("speedSlider").addEventListener("input", e => {
+        baseSpeed = parseInt(e.target.value);
+        document.getElementById("speedValue").textContent = baseSpeed;
+        updateBallVelocity();
+    });
+
+    canvas.addEventListener("mousemove", e => {
+        const rect = canvas.getBoundingClientRect();
+        player.y = e.clientY - rect.top - paddleH/2;
+    });
+
+    function draw() {
+        if (gameOver) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "white";
+        ctx.fillRect(player.x, player.y, paddleW, paddleH);
+        ctx.fillRect(ai.x, ai.y, paddleW, paddleH);
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        ball.x += ball.dx; ball.y += ball.dy;
+
+        if (ball.y - ball.size <= 0 || ball.y + ball.size >= canvas.height) {
+            dySign = -dySign;
+            updateBallVelocity();
+        }
+
+        if (ball.x - ball.size <= player.x + paddleW &&
+            ball.y >= player.y && ball.y <= player.y + paddleH) {
+            dxSign = 1; updateBallVelocity();
+        }
+
+        if (ball.x + ball.size >= ai.x &&
+            ball.y >= ai.y && ball.y <= ai.y + paddleH) {
+            dxSign = -1; updateBallVelocity();
+        }
+
+        if (ball.y < ai.y + paddleH / 2) ai.y -= aiSpeed;
+        else ai.y += aiSpeed;
+
+        if (ball.x + ball.size < 0) {
+            aiScore++; resetBall(); updateBallVelocity();
+        }
+
+        if (ball.x - ball.size > canvas.width) {
+            playerScore++; resetBall(); updateBallVelocity();
+        }
+
+        document.getElementById("score").textContent =
+            `You: ${playerScore} – AI: ${aiScore}`;
+
+        if (playerScore >= winningScore) {
+            gameOver = true;
+            endGame("player");
+        } else if (aiScore >= winningScore) {
+            gameOver = true;
+            endGame("ai");
+        }
+    }
+
+    function endGame(winner) {
+        const points = winner === "player" ? 2 : 1;
+        awardPoints(points, winner);
+    }
+
+    function awardPoints(points, winner) {
+        showNotification("Finalizing match…", "info");
+
+        fetch("/api/update-points/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({ points: points })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success || data.total_score != null) {
+                document.getElementById("user-score").textContent = data.total_score;
+                const winText = winner === "player" ? "🏆 You won!" : "🤖 AI wins!";
+                showNotification(`${winText} +${points} points. New total: ${data.total_score}`, "success");
+            } else {
+                const msg = data.error || "Something went wrong with your score update.";
+                showNotification(msg, "danger");
+                console.error("Backend error:", data);
+            }
+            setTimeout(() => location.reload(), 3000);
+        })
+        .catch(err => {
+            showNotification("Server error: " + err.message, "danger");
+            console.error("Network error:", err);
+            setTimeout(() => location.reload(), 3000);
+        });
+    }
+
+    updateBallVelocity();
+    setInterval(draw, 1000 / 60);
+</script>
+
+
+</body>
+</html>

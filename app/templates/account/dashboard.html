@@ -1,0 +1,28 @@
+{% extends 'app/base.html' %}
+{% block title %}Your Dashboard - SellItNow{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Your Game History & Scores</h2>
+    <p>Total Points: <strong>{{ total_points }}</strong></p>
+    <table class="table table-striped mt-3">
+        <thead>
+        <tr>
+            <th>Date</th>
+            <th>Game</th>
+            <th>Points Earned</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for score in game_scores %}
+        <tr>
+            <td>{{ score.played_at|date:"Y-m-d H:i" }}</td>
+            <td>{{ score.game.name }}</td>
+            <td>{{ score.score }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="text-center">No games played yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
