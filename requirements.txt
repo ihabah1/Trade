@@ -1,10 +1,9 @@
-django-admin-interface
-django
-python-dotenv
-django-allauth
-Pillow
-gunicorn
-whitenoise
-Django>=4.0
+Django>=4.2
 psycopg[binary]
 dj-database-url
+gunicorn
+whitenoise
+django-allauth
+django-admin-interface
+python-dotenv
+Pillow
