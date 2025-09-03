@@ -186,3 +186,10 @@ CLOUDINARY_STORAGE = {
 # Customizing session settings (Optional)
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_NAME = "sessionid"
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://sellitnow-production.up.railway.app",
+    "https://trade-production-1c81.up.railway.app",  # ADD YOUR DEPLOYED DOMAIN HERE
+    "http://127.0.0.1:8000",  # for local dev
+    "http://localhost:8000",  # for local dev
+]
