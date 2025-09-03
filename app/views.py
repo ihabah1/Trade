@@ -1,36 +1,21 @@
-﻿from django.shortcuts import render, redirect
+﻿import json
+from django.shortcuts import render, redirect
 from django.views import View
+from django.views.generic import TemplateView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.db.models import Sum
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-
-import json
+from django.conf import settings
 
 from .models import GameScore, Game
-
-
-from django.conf import settings
 from .economics import calculate_final_score
 
-from django.views.generic import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views import View
-from django.shortcuts import render
 
-from django.shortcuts import render
-from django.views import View
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
-from django.conf import settings
-
-from .economics import calculate_final_score
-
-from django.views.generic import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-
+# -------------------------------
+# Economic Index
+# -------------------------------
 class EconomicIndexView(LoginRequiredMixin, TemplateView):
     template_name = 'app/economic_index.html'
 
@@ -42,23 +27,13 @@ class EconomicIndexView(LoginRequiredMixin, TemplateView):
         return context
 
 
-##class EconomicIndexView(LoginRequiredMixin, View):
-#    def get(self, request):
- #       return render(request, 'app/economic_index.html')
-
-@login_required
-def economic_index_api(request):
-    api_key = settings.OPENROUTER_API_KEY
-    data = calculate_final_score(api_key)
-    return JsonResponse(data)
-
-
-
 @login_required
 def economic_index_api(request):
     api_key = settings.OPENROUTER_API_KEY  # store securely in settings.py
     data = calculate_final_score(api_key)
     return JsonResponse(data)
+
+
 # -------------------------------
 # User Dashboard
 # -------------------------------
@@ -71,6 +46,7 @@ def user_dashboard(request):
         'total_points': total_points
     })
 
+
 # -------------------------------
 # Game Lobby
 # -------------------------------
@@ -78,6 +54,7 @@ class LobbyView(LoginRequiredMixin, View):
     def get(self, request):
         games = Game.objects.all()
         return render(request, 'app/lobby.html', {'games': games})
+
 
 # -------------------------------
 # Submit Score (Legacy POST)
@@ -93,6 +70,7 @@ def submit_score(request):
         return redirect('user_dashboard')
     return redirect('lobby')
 
+
 # -------------------------------
 # Game Views
 # -------------------------------
@@ -100,14 +78,15 @@ def submit_score(request):
 def play_ping_pong(request):
     return render(request, 'games/ping_pong.html')
 
+
 @login_required
 def play_tetris(request):
     return render(request, 'games/tetris.html')
 
+
 # -------------------------------
 # API Endpoint: Update Points
 # -------------------------------
-@csrf_exempt
 @login_required
 def update_points(request):
     if request.method == "POST":
@@ -125,11 +104,13 @@ def update_points(request):
             return JsonResponse({"success": False, "error": str(e)}, status=400)
     return JsonResponse({"success": False, "error": "Invalid request method"}, status=405)
 
+
 # -------------------------------
 # Signup Redirect View to disable registration
 # -------------------------------
 def redirect_signup_to_login(request):
     return redirect('/accounts/login/')
+
 
 # -------------------------------
 # Home Page
