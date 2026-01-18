@@ -8,7 +8,8 @@ from app.views import (
     play_tetris,
     submit_score,
     update_points,
-    redirect_signup_to_login
+    redirect_signup_to_login,
+    basket
 )
 
 urlpatterns = [
@@ -21,7 +22,7 @@ urlpatterns = [
     path('play/tetris/', play_tetris, name='play_tetris'),
     path('submit-score/', submit_score, name='submit_score'),
     path('api/update-points/', update_points, name='update_points'),
-
+    path("basket/", basket, name="basket"),
     # **Put signup redirect BEFORE allauth URLs**
     path('accounts/signup/', redirect_signup_to_login, name='account_signup'),
 
