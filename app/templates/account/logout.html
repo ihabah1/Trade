@@ -11,14 +11,14 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
   <div class="container">
-    <a class="navbar-brand" href="{% url 'index' %}">Game Lobby</a>
+    <a class="navbar-brand" href="{% url 'app:index' %}">Game Lobby</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" >
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">{% trans "Home" %}</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">{% trans "Profile" %}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'app:index' %}">{% trans "Home" %}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'app:profile' %}">{% trans "Profile" %}</a></li>
         <li class="nav-item">
           <a class="nav-link btn btn-danger text-white" href="{% url 'account_logout' %}">{% trans "Logout" %}</a>
         </li>
@@ -34,7 +34,7 @@
     <form method="post" class="d-flex justify-content-center gap-3">
       {% csrf_token %}
       <button type="submit" class="btn btn-danger">{% trans "Logout" %}</button>
-      <a href="{% url 'index' %}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+      <a href="{% url 'app:index' %}" class="btn btn-secondary">{% trans "Cancel" %}</a>
     </form>
   </div>
 </div>

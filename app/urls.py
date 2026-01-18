@@ -19,4 +19,6 @@ urlpatterns = [
     path("play/tetris/", play_tetris, name="play_tetris"),
     path("economic-index/", EconomicIndexView.as_view(), name="economic_index"),
     path("basket/", basket, name="basket"),
+    path("economic-index/", EconomicIndexView.as_view(), name="economic_index"),
+
 ]
