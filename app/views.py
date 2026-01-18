@@ -77,15 +77,20 @@ class LobbyView(LoginRequiredMixin, TemplateView):
 # -------------------------------
 # Basket (Test Only)
 # -------------------------------
+from django.contrib import messages
+
 def basket(request):
     seed_name = request.GET.get("name")
     seed_price = request.GET.get("price")
+
+    if request.method == "POST":
+        messages.success(request, "🚚 The product is on the way!")
+        return redirect(request.path + f"?name={seed_name}&price={seed_price}")
 
     return render(request, "app/basket.html", {
         "seed_name": seed_name,
         "seed_price": seed_price,
     })
-
 
 # -------------------------------
 # Submit Score (Legacy POST)

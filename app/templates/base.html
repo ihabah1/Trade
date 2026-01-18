@@ -18,8 +18,8 @@
         <h4 class="m-0">SellItNow</h4>
         {% if user.is_authenticated %}
         <nav>
-            <a href="{% url 'lobby' %}">Lobby</a>
-            <a href="{% url 'profile' %}">Profile</a>
+            <a href="{% url 'app:lobby' %}">Lobby</a>
+            <a href="{% url 'app:profile' %}">Profile</a>
             <a href="{% url 'account_logout' %}">Logout</a>
         </nav>
         {% else %}
