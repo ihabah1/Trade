@@ -1,13 +1,4 @@
 ﻿Django>=4.2
-psycopg[binary]
-dj-database-url
-gunicorn
-whitenoise
-django-allauth
-django-admin-interface
-python-dotenv
-Pillow
-Django>=4.2
 gunicorn
 whitenoise
 psycopg[binary]
@@ -18,4 +9,8 @@ python-dotenv
 Pillow
 cloudinary
 django-cloudinary-storage
-requests   # ✅ add this line
+requests
+beautifulsoup4
+gspread
+oauth2client
+google-generativeai
