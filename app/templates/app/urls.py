@@ -8,9 +8,11 @@ from . import views
 app_name = "app"
 
 urlpatterns = [
-    path("", views.index, name="index"),
-    path("lobby/", views.LobbyView.as_view(), name="lobby"),
-    path("basket/", views.basket, name="basket"),
+    urlpatterns = [
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('app.urls')),
 ]
-
-

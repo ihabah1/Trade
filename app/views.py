@@ -12,6 +12,30 @@ from django.conf import settings
 
 from .models import GameScore, Game
 from .economics import calculate_final_score
+from .services.data_service import build_lobby_data
+
+
+# -------------------------------
+# Home
+# -------------------------------
+class HomeView(View):
+    def get(self, request):
+        return render(request, 'app/index.html')
+
+
+# -------------------------------
+# Lobby (FAST load - no data here)
+# -------------------------------
+class LobbyView(LoginRequiredMixin, TemplateView):
+    template_name = "app/lobby.html"
+
+
+# -------------------------------
+# 🚀 API - loads data async
+# -------------------------------
+def lobby_data_api(request):
+    data = build_lobby_data()
+    return JsonResponse(data)
 
 
 # -------------------------------
@@ -49,36 +73,8 @@ def user_dashboard(request):
 
 
 # -------------------------------
-# Seed Catalog (Lobby)
+# Basket
 # -------------------------------
-class LobbyView(LoginRequiredMixin, TemplateView):
-    template_name = "app/lobby.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        # Plants / Seeds only (10 products)
-        context["seeds"] = [
-    {"name": "Basil Seeds", "price": "2.20", "image": "https://images.unsplash.com/photo-1625246333195-78d9c38ad449"},
-    {"name": "Tomato Seeds", "price": "3.50", "image": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea"},
-    {"name": "Carrot Seeds", "price": "2.90", "image": "https://www.allthatgrows.in/cdn/shop/products/Carrot-Orange.jpg?v=1598079671"},
-    {"name": "Lettuce Seeds", "price": "2.10", "image": "https://www.100daysofrealfood.com/wp-content/uploads/2023/11/vecteezy_lettuce-salad-leaf-isolated-on-white-background-with_5582269-1200x800.jpg"},
-    {"name": "Pepper Seeds", "price": "3.10", "image": "https://sc02.alicdn.com/kf/H908de00a859846ffb6e84761ad68a831R.png"},
-    {"name": "Cucumber Seeds", "price": "2.80", "image": "https://www.seedsnow.com/cdn/shop/products/Cucumber_-_Ashley_seeds.jpg?v=1681331732&width=1214"},
-    {"name": "Spinach Seeds", "price": "1.90", "image": "https://cdn.britannica.com/30/82530-050-79911DD4/Spinach-leaves-vitamins-source-person.jpg?w=300"},
-    {"name": "Parsley Seeds", "price": "1.80", "image": "https://sc02.alicdn.com/kf/Hf89de3d8dc7e4d7a9350c1b1f74ca154Z.png"},
-    {"name": "Mint Seeds", "price": "2.00", "image": "https://www.kenshodaily.com/cdn/shop/products/MintLeaves_720x@2x.png?v=1672742949"},
-    {"name": "Onion Seeds", "price": "2.60", "image": "https://produits.bienmanger.com/36700-0w0h0_Organic_Red_Onion_From_Italy.jpg"},
-]
-
-        return context
-
-
-# -------------------------------
-# Basket (Test Only)
-# -------------------------------
-from django.contrib import messages
-
 def basket(request):
     seed_name = request.GET.get("name")
     seed_price = request.GET.get("price")
@@ -92,23 +88,9 @@ def basket(request):
         "seed_price": seed_price,
     })
 
-# -------------------------------
-# Submit Score (Legacy POST)
-# -------------------------------
-@login_required
-def submit_score(request):
-    if request.method == "POST":
-        game_name = request.POST.get("game_name")
-        score = int(request.POST.get("score", 0))
-        game, _ = Game.objects.get_or_create(name=game_name)
-        GameScore.objects.create(user=request.user, game=game, score=score)
-        messages.success(request, "Your score has been saved!")
-        return redirect('app:profile')
-    return redirect('app:lobby')
-
 
 # -------------------------------
-# Game Views
+# Games
 # -------------------------------
 @login_required
 def play_ping_pong(request):
@@ -118,45 +100,3 @@ def play_ping_pong(request):
 @login_required
 def play_tetris(request):
     return render(request, 'games/tetris.html')
-
-
-# -------------------------------
-# API Endpoint: Update Points
-# -------------------------------
-@login_required
-def update_points(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            points = int(data.get("points", 0))
-            user = request.user
-
-            game, _ = Game.objects.get_or_create(
-                name="Ping Pong",
-                defaults={"max_score": 3}
-            )
-
-            GameScore.objects.create(user=user, game=game, score=points)
-
-            total = GameScore.objects.filter(user=user).aggregate(Sum('score'))['score__sum'] or 0
-            return JsonResponse({"success": True, "total_score": total})
-
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)}, status=400)
-
-    return JsonResponse({"success": False, "error": "Invalid request method"}, status=405)
-
-
-# -------------------------------
-# Signup Redirect (Disable Registration)
-# -------------------------------
-def redirect_signup_to_login(request):
-    return redirect('/accounts/login/')
-
-
-# -------------------------------
-# Home Page
-# -------------------------------
-class HomeView(View):
-    def get(self, request):
-        return render(request, 'app/index.html')

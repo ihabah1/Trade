@@ -1,44 +1,111 @@
 ﻿{% extends "app/base.html" %}
 
-{% block title %}Seed Catalog{% endblock %}
+{% block title %}Market Dashboard{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
 
-    <h2 class="text-center mb-4">🌱 Seed Catalog</h2>
+    <h2 class="text-center mb-4">📊 Market Dashboard</h2>
 
-    <div class="row g-4">
+    <!-- 🔄 Progress Bar -->
+    <div class="progress mb-4" style="height: 25px;">
+        <div id="progressBar"
+             class="progress-bar progress-bar-striped progress-bar-animated"
+             style="width: 0%">0%</div>
+    </div>
 
-        {% comment %} PRODUCT CARD TEMPLATE {% endcomment %}
-        {% for seed in seeds %}
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm text-center">
+    <!-- 📦 Content -->
+    <div id="content" style="display:none;">
+        <div class="row g-4">
 
-                <img src="{{ seed.image }}"
-                     class="card-img-top seed-image"
-                     alt="{{ seed.name }}">
-
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">{{ seed.name }}</h5>
-                    <p class="text-muted mb-3">${{ seed.price }}</p>
-
-                    <a href="{% url 'app:basket' %}?name={{ seed.name|urlencode }}&price={{ seed.price }}"
-                       class="btn btn-success mt-auto">
-                        Add to Basket
-                    </a>
+            <!-- 📈 Prices -->
+            <div class="col-md-6">
+                <div class="card p-3 shadow-sm">
+                    <h4>📈 Market Prices</h4>
+                    <div id="prices"></div>
                 </div>
-
             </div>
-        </div>
-        {% endfor %}
 
+            <!-- 🧠 AI News -->
+            <div class="col-md-6">
+                <div class="card p-3 shadow-sm">
+                    <h4>🧠 AI News</h4>
+                    <div id="aiNews"></div>
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
 
-<style>
-.seed-image {
-    height: 220px;
-    object-fit: cover;
+<script>
+let progress = 0;
+
+function updateProgress(val){
+    const bar = document.getElementById("progressBar");
+    bar.style.width = val + "%";
+    bar.innerText = val + "%";
 }
-</style>
+
+// fake smooth loading
+let interval = setInterval(()=>{
+    if(progress < 90){
+        progress += 5;
+        updateProgress(progress);
+    }
+}, 200);
+
+// fetch data
+fetch("/api/lobby-data/")
+.then(res => res.json())
+.then(data => {
+
+    clearInterval(interval);
+    updateProgress(100);
+
+    setTimeout(()=>{
+        document.querySelector(".progress").style.display = "none";
+        document.getElementById("content").style.display = "block";
+    }, 400);
+
+    // Prices
+    let pricesHtml = "";
+    for (let key in data.prices){
+        pricesHtml += `
+            <p>
+                <strong>${key}</strong>: 
+                <span style="color:green">${data.prices[key]}</span>
+            </p>
+        `;
+    }
+    document.getElementById("prices").innerHTML = pricesHtml;
+
+    // AI cards
+    let newsHtml = "";
+
+    data.summary.slice(0,3).forEach(item => {
+        newsHtml += `
+            <div style="
+                border:1px solid #ddd;
+                border-radius:12px;
+                padding:15px;
+                margin-bottom:15px;
+                background:#f9f9f9;
+            ">
+                <h5>${item.title}</h5>
+                <p>${item.summary}</p>
+                <small>
+                    <a href="${item.url}" target="_blank">
+                        🔗 מקור: ${item.source}
+                    </a>
+                </small>
+            </div>
+        `;
+    });
+
+    document.getElementById("aiNews").innerHTML = newsHtml;
+
+});
+</script>
+
 {% endblock %}

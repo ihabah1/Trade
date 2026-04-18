@@ -1,24 +1,19 @@
 ﻿from django.urls import path
-from .views import (
-    HomeView,
-    LobbyView,
-    user_dashboard,
-    play_ping_pong,
-    play_tetris,
-    EconomicIndexView,
-    basket,
-)
+from . import views
 
 app_name = "app"
 
 urlpatterns = [
-    path("", HomeView.as_view(), name="index"),
-    path("lobby/", LobbyView.as_view(), name="lobby"),
-    path("profile/", user_dashboard, name="profile"),
-    path("play/ping-pong/", play_ping_pong, name="play_ping_pong"),
-    path("play/tetris/", play_tetris, name="play_tetris"),
-    path("economic-index/", EconomicIndexView.as_view(), name="economic_index"),
-    path("basket/", basket, name="basket"),
-    path("economic-index/", EconomicIndexView.as_view(), name="economic_index"),
+    path("", views.HomeView.as_view(), name="index"),
+    path("profile/", views.user_dashboard, name="profile"),
+    path("play/ping-pong/", views.play_ping_pong, name="play_ping_pong"),
+    path("play/tetris/", views.play_tetris, name="play_tetris"),
+    path("economic-index/", views.EconomicIndexView.as_view(), name="economic_index"),
+    path("basket/", views.basket, name="basket"),
 
+    # Lobby
+    path("lobby/", views.LobbyView.as_view(), name="lobby"),
+
+    # 🔥 API
+    path("api/lobby-data/", views.lobby_data_api, name="lobby_data_api"),
 ]
